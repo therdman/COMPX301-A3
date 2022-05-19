@@ -12,6 +12,7 @@ import javax.swing.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 public class Stars2 extends JPanel {
     // global variables
@@ -29,6 +30,18 @@ public class Stars2 extends JPanel {
             y = coordY;
         }
 
+    }
+
+    static class Edge {
+        Node _beginning;
+        Node _end;
+        double _distanceToNode;
+
+        public Edge(Node beginning, Node end, double distacneToNode) {
+            _beginning = beginning;
+            _end = end;
+            _distanceToNode = distacneToNode;
+        }
     }
 
     public static void main(String[] args) {
@@ -109,8 +122,20 @@ public class Stars2 extends JPanel {
         frame.setTitle("Space Explorer");
         frame.setVisible(true);
 
-        // ****************************************** A* IMPLEMENTATION
-        // ****************************************
+        // ********************** A* IMPLEMENTATION
+        // Step one: Add edges/paths to priority queue
+        // create priority queue comparing distances
+        Comparator<Edge> frontier = new Comparator<>() {
+            @Override
+            public int compare(Edge edge1, Edge edge2) {
+                return (int) edge1._distanceToNode - (int) edge2._distanceToNode;
+            }
+        };
+
+        // add each neighnour depending on distance
+        for (Node n : startNode.nodesWithinDistance) {
+
+        }
     }
 
     private static void NodesWithinDistance(Node node, List<Node> nodes) {
