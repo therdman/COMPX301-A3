@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.List;
+import java.util.PriorityQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -42,6 +43,7 @@ public class Stars2 extends JPanel {
             _end = end;
             _distanceToNode = distacneToNode;
         }
+
     }
 
     public static void main(String[] args) {
@@ -124,18 +126,31 @@ public class Stars2 extends JPanel {
 
         // ********************** A* IMPLEMENTATION
         // Step one: Add edges/paths to priority queue
+
         // create priority queue comparing distances
-        Comparator<Edge> frontier = new Comparator<>() {
+        Comparator<Edge> comparator = new Comparator<>() {
             @Override
             public int compare(Edge edge1, Edge edge2) {
                 return (int) edge1._distanceToNode - (int) edge2._distanceToNode;
             }
         };
 
+        PriorityQueue<Edge> queue = new PriorityQueue<>(comparator);
+
         // add each neighnour depending on distance
         for (Node n : startNode.nodesWithinDistance) {
+            // caclulate distance to neighbour node
+            double distanceX = n.x - startNode.x;
+            double distanceY = n.y - startNode.y;
 
+            double dist = Math.sqrt(distanceY * distanceY + distanceX * distanceX);
+
+            // create new edge between these two nodes
+            Edge edge = new Edge(startNode, n, dist);
+            // Add edge to queue
+            queue.add(edge);
         }
+
     }
 
     private static void NodesWithinDistance(Node node, List<Node> nodes) {
