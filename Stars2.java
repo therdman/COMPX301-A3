@@ -25,6 +25,7 @@ public class Stars2 extends JPanel {
     static class Node {
         double x, y;
         List<Node> nodesWithinDistance;
+        double distanceToGoal;
 
         public Node(double coordX, double coordY) {
             x = coordX;
@@ -79,6 +80,7 @@ public class Stars2 extends JPanel {
         }
 
         Node startNode = nodesList.get(startIndex);
+        Node goalNode = nodesList.get(endIndex);
 
         // order list to make navigating nodes easier
         Collections.sort(coordinates);
@@ -137,20 +139,46 @@ public class Stars2 extends JPanel {
 
         PriorityQueue<Edge> queue = new PriorityQueue<>(comparator);
 
+        // get distance to goal from start
+        startNode.distanceToGoal = getDistance(goalNode, startNode);
         // add each neighnour depending on distance
         for (Node n : startNode.nodesWithinDistance) {
-            // caclulate distance to neighbour node
-            double distanceX = n.x - startNode.x;
-            double distanceY = n.y - startNode.y;
-
-            double dist = Math.sqrt(distanceY * distanceY + distanceX * distanceX);
-
+            double dist = getDistance(n, startNode);
             // create new edge between these two nodes
             Edge edge = new Edge(startNode, n, dist);
             // Add edge to queue
             queue.add(edge);
         }
+        Node currentNode = startNode;
+        // Step 2: Now that we have the first set of edges
+        // peek at node at end of first edge
+        while (currentNode != goalNode) {
+            Edge edge = queue.peek();
+            // add the node's distance to goal to edge distance
+            Node node = edge._end;
+            node.distanceToGoal = getDistance(node, goalNode);
+            double totalDist = edge._distanceToNode + node.distanceToGoal;
+            // if total distance is smaller than start distance to goal
+            // move to this node
+            if (totalDist <= startNode.distanceToGoal) {
+                currentNode = node;
+            }
+            // if total distance is larger
+            // peek at next edge in queue... maybe
+            else {
 
+            }
+        }
+
+    }
+
+    public static double getDistance(Node node1, Node node2) {
+        // caclulate distance to neighbour node
+        double distanceX = node1.x - node2.x;
+        double distanceY = node1.y - node2.y;
+
+        double dist = Math.sqrt(distanceY * distanceY + distanceX * distanceX);
+        return dist;
     }
 
     private static void NodesWithinDistance(Node node, List<Node> nodes) {
