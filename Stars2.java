@@ -127,6 +127,8 @@ public class Stars2 extends JPanel {
         startNode.f = startNode.h + startNode.g;
         frontier.add(startNode);
         boolean routeFound = false;
+        ArrayList<Node> oldNodes = new ArrayList<Node>();
+        double tempH, tempG, tempF;
 
         while(!frontier.isEmpty() && !routeFound) {
             Node n = frontier.poll();
@@ -139,8 +141,19 @@ public class Stars2 extends JPanel {
                 routeFound = true;
             }
             for(Node checkingNode: n.nodesWithinDistance) {
-                if(!stack.contains(checkingNode) && !frontier.contains(checkingNode)) {
-                    checkingNode.h = getDistance(goalNode, n);
+                tempH = getDistance(goalNode, checkingNode);
+                tempG = n.g + getDistance(n, checkingNode);
+                tempF = tempH + tempG;
+                if(frontier.contains(checkingNode)) {
+                    System.out.println("contains node");
+                    if(tempF < checkingNode.f) {
+                        checkingNode.h = tempH;
+                        checkingNode.g = tempG;
+                        checkingNode.f = tempF;
+                    }
+                }
+                else if(!stack.contains(checkingNode)) {
+                    checkingNode.h = getDistance(goalNode, checkingNode);
                     checkingNode.g = n.g + getDistance(n, checkingNode);
                     checkingNode.f = checkingNode.h + checkingNode.g;
                     frontier.add(checkingNode);
@@ -152,7 +165,7 @@ public class Stars2 extends JPanel {
             if(n.nodesWithinDistance.isEmpty()) {
                 frontier.add(stack.pop());
             }
-            else if(!stack.contains(n)) {
+            if(!stack.contains(n)) {
                 stack.add(n);
             }
             System.out.println("-------");
@@ -169,18 +182,13 @@ public class Stars2 extends JPanel {
                     int x = (int) Math.round(n.x * 8);
                     int y = (int) Math.round(n.y * 8);
                     g2.setColor(Color.BLUE);
+                    if(nodesList.indexOf(n) == startIndex) 
+                        g2.setColor(Color.GREEN);
+                    else if(nodesList.indexOf(n) == endIndex)
+                        g2.setColor(Color.RED);
                     g2.fillOval(x, y, nodeSize, nodeSize);
 
                 }
-
-                // draw lines to all nodes within distance of startnode
-                /*for (Node n : startNode.nodesWithinDistance) {
-                    int x1 = (int) startNode.x * 8;
-                    int y1 = (int) startNode.y * 8;
-                    int x2 = (int) n.x * 8;
-                    int y2 = (int) n.y * 8;
-                    g2.drawLine(x1, y1, x2, y2);
-                }*/
 
                 Node prev = startNode;
                 for (Node n: stack) {
