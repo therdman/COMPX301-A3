@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Stack;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -25,13 +26,15 @@ public class Stars2 extends JPanel {
     static class Node {
         double x, y;
         List<Node> nodesWithinDistance;
-        double distanceToGoal;
+        //double distanceToGoal;
+        double h = 0; // distance to goal
+        double g = 0; // cost from start to node
+        double f = 0; // main cost
 
         public Node(double coordX, double coordY) {
             x = coordX;
             y = coordY;
         }
-
     }
 
     static class Edge {
@@ -39,12 +42,11 @@ public class Stars2 extends JPanel {
         Node _end;
         double _distanceToNode;
 
-        public Edge(Node beginning, Node end, double distacneToNode) {
+        public Edge(Node beginning, Node end, double distanceToNode) {
             _beginning = beginning;
             _end = end;
-            _distanceToNode = distacneToNode;
+            _distanceToNode = distanceToNode;
         }
-
     }
 
     public static void main(String[] args) {
@@ -93,6 +95,82 @@ public class Stars2 extends JPanel {
         System.out.println(startNode.nodesWithinDistance.size());
         // get start node using node contents
 
+        // ********************** A* IMPLEMENTATION
+        // Step one: Add edges/paths to priority queue
+
+        // create priority queue comparing distances
+        Comparator<Edge> EdgeComparator = new Comparator<>() {
+            @Override
+            public int compare(Edge edge1, Edge edge2) {
+                return (int) edge1._distanceToNode - (int) edge2._distanceToNode;
+            }
+        };
+
+        Comparator<Node> nodeComparator = new Comparator<Node>() {
+            @Override
+            public int compare(Node node1, Node node2) {
+                if (node1.f < node2.f) {
+                    return -1;
+                }
+                else if (node1.f > node2.f) {
+                    return 1;
+                }
+                return 0;
+            }
+        };
+
+        PriorityQueue<Edge> queue = new PriorityQueue<>(EdgeComparator);
+        PriorityQueue<Node> frontier = new PriorityQueue<>(nodeComparator);
+        Stack<Node> stack = new Stack<>();
+
+        startNode.h = getDistance(goalNode, startNode);
+        startNode.f = startNode.h + startNode.g;
+        frontier.add(startNode);
+        boolean routeFound = false;
+        ArrayList<Node> oldNodes = new ArrayList<Node>();
+        double tempH, tempG, tempF;
+
+        while(!frontier.isEmpty() && !routeFound) {
+            Node n = frontier.poll();
+            if(nodesList.indexOf(n) == endIndex) {
+                System.out.println("Route found");
+                stack.add(n);
+                //for(Node testNode: stack) {
+                //    System.out.println(testNode.x + " : " + testNode.y);
+                //}
+                routeFound = true;
+            }
+            for(Node checkingNode: n.nodesWithinDistance) {
+                tempH = getDistance(goalNode, checkingNode);
+                tempG = n.g + getDistance(n, checkingNode);
+                tempF = tempH + tempG;
+                if(frontier.contains(checkingNode)) {
+                    System.out.println("contains node");
+                    if(tempF < checkingNode.f) {
+                        checkingNode.h = tempH;
+                        checkingNode.g = tempG;
+                        checkingNode.f = tempF;
+                    }
+                }
+                else if(!stack.contains(checkingNode)) {
+                    checkingNode.h = getDistance(goalNode, checkingNode);
+                    checkingNode.g = n.g + getDistance(n, checkingNode);
+                    checkingNode.f = checkingNode.h + checkingNode.g;
+                    frontier.add(checkingNode);
+                }
+            }
+            /*for(Node testNode: frontier) {
+                System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
+            }*/
+            if(n.nodesWithinDistance.isEmpty()) {
+                frontier.add(stack.pop());
+            }
+            if(!stack.contains(n)) {
+                stack.add(n);
+            }
+            System.out.println("-------");
+        }
+
         int nodeSize = 10;
         JFrame frame = new JFrame();
         JPanel panel = new JPanel() {
@@ -104,17 +182,22 @@ public class Stars2 extends JPanel {
                     int x = (int) Math.round(n.x * 8);
                     int y = (int) Math.round(n.y * 8);
                     g2.setColor(Color.BLUE);
+                    if(nodesList.indexOf(n) == startIndex) 
+                        g2.setColor(Color.GREEN);
+                    else if(nodesList.indexOf(n) == endIndex)
+                        g2.setColor(Color.RED);
                     g2.fillOval(x, y, nodeSize, nodeSize);
 
                 }
 
-                // draw lines to all nodes within distance of startnode
-                for (Node n : startNode.nodesWithinDistance) {
-                    int x1 = (int) startNode.x * 8;
-                    int y1 = (int) startNode.y * 8;
+                Node prev = startNode;
+                for (Node n: stack) {
+                    int x1 = (int) prev.x * 8;
+                    int y1 = (int) prev.y * 8;
                     int x2 = (int) n.x * 8;
                     int y2 = (int) n.y * 8;
                     g2.drawLine(x1, y1, x2, y2);
+                    prev = n;
                 }
 
             }
@@ -126,22 +209,10 @@ public class Stars2 extends JPanel {
         frame.setTitle("Space Explorer");
         frame.setVisible(true);
 
-        // ********************** A* IMPLEMENTATION
-        // Step one: Add edges/paths to priority queue
-
-        // create priority queue comparing distances
-        Comparator<Edge> comparator = new Comparator<>() {
-            @Override
-            public int compare(Edge edge1, Edge edge2) {
-                return (int) edge1._distanceToNode - (int) edge2._distanceToNode;
-            }
-        };
-
-        PriorityQueue<Edge> queue = new PriorityQueue<>(comparator);
-
+        /*
         // get distance to goal from start
         startNode.distanceToGoal = getDistance(goalNode, startNode);
-        // add each neighnour depending on distance
+        // add each neighbour depending on distance
         for (Node n : startNode.nodesWithinDistance) {
             double dist = getDistance(n, startNode);
             // create new edge between these two nodes
@@ -169,77 +240,27 @@ public class Stars2 extends JPanel {
 
             }
         }
+        */
 
     }
 
     public static double getDistance(Node node1, Node node2) {
         // caclulate distance to neighbour node
-        double distanceX = node1.x - node2.x;
-        double distanceY = node1.y - node2.y;
-
-        double dist = Math.sqrt(distanceY * distanceY + distanceX * distanceX);
-        return dist;
+        return Math.sqrt(Math.pow(node1.x - node2.x, 2) + Math.pow(node1.y - node2.y, 2));
     }
 
     private static void NodesWithinDistance(Node node, List<Node> nodes) {
         // nodes are ordered so traversing is easier
         // create list to store close nodes
         List<Node> closeNodes = new ArrayList<Node>();
-        // find index of current node
-        int index = nodes.indexOf(node);
-        int tempIndex = index;
-        // System.out.println("Index: " + index);
-        // System.out.println(node.x + " " + node.y);
 
-        // move below node index until they are out of range
-        // or start of list is reached
-        Boolean searching = true;
-        Boolean lookingBelow = true;
-        Boolean lookingAbove = false;
-
-        while (searching == true) {
-            if (lookingBelow == true) {
-                if (tempIndex > 0) {
-                    // System.out.println("Looking below for: " + tempIndex);
-                    Node n = nodes.get(tempIndex - 1);
-                    // get distance from current node to node n
-                    double distanceX = n.x - node.x;
-                    double distanceY = n.y - node.y;
-
-                    double distanceBetween = Math.sqrt(distanceY * distanceY + distanceX * distanceX);
-                    tempIndex--;
-                    if (distanceBetween <= distance) {
-                        closeNodes.add(n);
-                    } else {
-                        lookingBelow = false;
-                        lookingAbove = true;
-                        tempIndex = index;
-                    }
-                } else {
-                    lookingBelow = false;
-                    lookingAbove = true;
-                    tempIndex = index;
-                }
-            } else if (lookingAbove == true) {
-                if (tempIndex < nodes.size() - 1) {
-                    // System.out.println("Looking above for: " + index);
-                    Node n = nodes.get(tempIndex + 1);
-                    // get distance from current node to node n
-                    double distanceX = n.x - node.x;
-                    double distanceY = n.y - node.y;
-
-                    double distanceBetween = Math.sqrt(distanceY * distanceY + distanceX * distanceX);
-                    tempIndex++;
-                    if (distanceBetween <= distance) {
-                        closeNodes.add(n);
-                    } else {
-                        searching = false;
-                    }
-                } else {
-                    searching = false;
-                }
+        for(Node n: nodes) {
+            double distanceBetween = getDistance(n, node);
+            if(distanceBetween <= distance) {
+                closeNodes.add(n);
             }
         }
+
         node.nodesWithinDistance = closeNodes;
     }
 }
