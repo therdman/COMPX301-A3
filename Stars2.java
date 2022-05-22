@@ -26,7 +26,7 @@ public class Stars2 extends JPanel {
     static class Node {
         double x, y;
         List<Node> nodesWithinDistance;
-        //double distanceToGoal;
+        // double distanceToGoal;
         double h = 0; // distance to goal
         double g = 0; // cost from start to node
         double f = 0; // main cost
@@ -111,8 +111,7 @@ public class Stars2 extends JPanel {
             public int compare(Node node1, Node node2) {
                 if (node1.f < node2.f) {
                     return -1;
-                }
-                else if (node1.f > node2.f) {
+                } else if (node1.f > node2.f) {
                     return 1;
                 }
                 return 0;
@@ -130,42 +129,43 @@ public class Stars2 extends JPanel {
         ArrayList<Node> oldNodes = new ArrayList<Node>();
         double tempH, tempG, tempF;
 
-        while(!frontier.isEmpty() && !routeFound) {
+        while (!frontier.isEmpty() && !routeFound) {
             Node n = frontier.poll();
-            if(nodesList.indexOf(n) == endIndex) {
+            if (nodesList.indexOf(n) == endIndex) {
                 System.out.println("Route found");
                 stack.add(n);
-                //for(Node testNode: stack) {
-                //    System.out.println(testNode.x + " : " + testNode.y);
-                //}
+                // for(Node testNode: stack) {
+                // System.out.println(testNode.x + " : " + testNode.y);
+                // }
                 routeFound = true;
             }
-            for(Node checkingNode: n.nodesWithinDistance) {
+            for (Node checkingNode : n.nodesWithinDistance) {
                 tempH = getDistance(goalNode, checkingNode);
                 tempG = n.g + getDistance(n, checkingNode);
                 tempF = tempH + tempG;
-                if(frontier.contains(checkingNode)) {
+                if (frontier.contains(checkingNode)) {
                     System.out.println("contains node");
-                    if(tempF < checkingNode.f) {
+                    if (tempF < checkingNode.f) {
                         checkingNode.h = tempH;
                         checkingNode.g = tempG;
                         checkingNode.f = tempF;
                     }
-                }
-                else if(!stack.contains(checkingNode)) {
+                } else if (!stack.contains(checkingNode)) {
                     checkingNode.h = getDistance(goalNode, checkingNode);
                     checkingNode.g = n.g + getDistance(n, checkingNode);
                     checkingNode.f = checkingNode.h + checkingNode.g;
                     frontier.add(checkingNode);
                 }
             }
-            /*for(Node testNode: frontier) {
-                System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
-            }*/
-            if(n.nodesWithinDistance.isEmpty()) {
+            /*
+             * for(Node testNode: frontier) {
+             * System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
+             * }
+             */
+            if (n.nodesWithinDistance.isEmpty()) {
                 frontier.add(stack.pop());
             }
-            if(!stack.contains(n)) {
+            if (!stack.contains(n)) {
                 stack.add(n);
             }
             System.out.println("-------");
@@ -182,20 +182,20 @@ public class Stars2 extends JPanel {
                     int x = (int) Math.round(n.x * 8);
                     int y = (int) Math.round(n.y * 8);
                     g2.setColor(Color.BLUE);
-                    if(nodesList.indexOf(n) == startIndex) 
+                    if (nodesList.indexOf(n) == startIndex)
                         g2.setColor(Color.GREEN);
-                    else if(nodesList.indexOf(n) == endIndex)
+                    else if (nodesList.indexOf(n) == endIndex)
                         g2.setColor(Color.RED);
                     g2.fillOval(x, y, nodeSize, nodeSize);
 
                 }
 
                 Node prev = startNode;
-                for (Node n: stack) {
-                    int x1 = (int) prev.x * 8;
-                    int y1 = (int) prev.y * 8;
-                    int x2 = (int) n.x * 8;
-                    int y2 = (int) n.y * 8;
+                for (Node n : stack) {
+                    int x1 = (int) Math.round(prev.x * 8) + (nodeSize / 2);
+                    int y1 = (int) Math.round(prev.y * 8) + (nodeSize / 2);
+                    int x2 = (int) Math.round(n.x * 8) + (nodeSize / 2);
+                    int y2 = (int) Math.round(n.y * 8) + (nodeSize / 2);
                     g2.drawLine(x1, y1, x2, y2);
                     prev = n;
                 }
@@ -210,37 +210,37 @@ public class Stars2 extends JPanel {
         frame.setVisible(true);
 
         /*
-        // get distance to goal from start
-        startNode.distanceToGoal = getDistance(goalNode, startNode);
-        // add each neighbour depending on distance
-        for (Node n : startNode.nodesWithinDistance) {
-            double dist = getDistance(n, startNode);
-            // create new edge between these two nodes
-            Edge edge = new Edge(startNode, n, dist);
-            // Add edge to queue
-            queue.add(edge);
-        }
-        Node currentNode = startNode;
-        // Step 2: Now that we have the first set of edges
-        // peek at node at end of first edge
-        while (currentNode != goalNode) {
-            Edge edge = queue.peek();
-            // add the node's distance to goal to edge distance
-            Node node = edge._end;
-            node.distanceToGoal = getDistance(node, goalNode);
-            double totalDist = edge._distanceToNode + node.distanceToGoal;
-            // if total distance is smaller than start distance to goal
-            // move to this node
-            if (totalDist <= startNode.distanceToGoal) {
-                currentNode = node;
-            }
-            // if total distance is larger
-            // peek at next edge in queue... maybe
-            else {
-
-            }
-        }
-        */
+         * // get distance to goal from start
+         * startNode.distanceToGoal = getDistance(goalNode, startNode);
+         * // add each neighbour depending on distance
+         * for (Node n : startNode.nodesWithinDistance) {
+         * double dist = getDistance(n, startNode);
+         * // create new edge between these two nodes
+         * Edge edge = new Edge(startNode, n, dist);
+         * // Add edge to queue
+         * queue.add(edge);
+         * }
+         * Node currentNode = startNode;
+         * // Step 2: Now that we have the first set of edges
+         * // peek at node at end of first edge
+         * while (currentNode != goalNode) {
+         * Edge edge = queue.peek();
+         * // add the node's distance to goal to edge distance
+         * Node node = edge._end;
+         * node.distanceToGoal = getDistance(node, goalNode);
+         * double totalDist = edge._distanceToNode + node.distanceToGoal;
+         * // if total distance is smaller than start distance to goal
+         * // move to this node
+         * if (totalDist <= startNode.distanceToGoal) {
+         * currentNode = node;
+         * }
+         * // if total distance is larger
+         * // peek at next edge in queue... maybe
+         * else {
+         * 
+         * }
+         * }
+         */
 
     }
 
@@ -254,9 +254,9 @@ public class Stars2 extends JPanel {
         // create list to store close nodes
         List<Node> closeNodes = new ArrayList<Node>();
 
-        for(Node n: nodes) {
+        for (Node n : nodes) {
             double distanceBetween = getDistance(n, node);
-            if(distanceBetween <= distance) {
+            if (distanceBetween <= distance) {
                 closeNodes.add(n);
             }
         }
