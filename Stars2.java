@@ -21,6 +21,7 @@ public class Stars2 extends JPanel {
     static int startIndex;
     static int endIndex;
     static double distance;
+    static String fileName = "";
 
     // take coordinates from list and turn them into nodes
     static class Node {
@@ -51,10 +52,14 @@ public class Stars2 extends JPanel {
 
     public static void main(String[] args) {
         // read from entered arguments
-        String fileName = args[0];
-        startIndex = Integer.parseInt(args[1]);
-        endIndex = Integer.parseInt(args[2]);
-        distance = Double.parseDouble(args[3]);
+        try {
+            fileName = args[0];
+            startIndex = Integer.parseInt(args[1]);
+            endIndex = Integer.parseInt(args[2]);
+            distance = Double.parseDouble(args[3]);
+        } catch (Exception ex) {
+            System.out.println("Incorrect input detected.");
+        }
 
         // read star coordinates from file
         List<String> coordinates = new ArrayList<>();
@@ -126,11 +131,12 @@ public class Stars2 extends JPanel {
         startNode.f = startNode.h + startNode.g;
         frontier.add(startNode);
         boolean routeFound = false;
-        ArrayList<Node> oldNodes = new ArrayList<Node>();
+        ArrayList<Node> avoidNodes = new ArrayList<Node>();
         double tempH, tempG, tempF;
 
         while (!frontier.isEmpty() && !routeFound) {
             Node n = frontier.poll();
+            frontier.clear();
             if (nodesList.indexOf(n) == endIndex) {
                 System.out.println("Route found");
                 stack.add(n);
@@ -140,21 +146,25 @@ public class Stars2 extends JPanel {
                 routeFound = true;
             }
             for (Node checkingNode : n.nodesWithinDistance) {
-                tempH = getDistance(goalNode, checkingNode); // distance to goal
-                tempG = n.g + getDistance(n, checkingNode); // cost to node
-                tempF = tempH + tempG; // distance + cost
-                if (frontier.contains(checkingNode)) {
-                    // System.out.println("contains node");
+                tempH = getDistance(goalNode, checkingNode);
+                tempG = n.g + getDistance(n, checkingNode);
+                tempF = tempH + tempG;
+
+                // for(Node testNode: frontier) {
+                // System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
+                // }
+                if (avoidNodes.contains(checkingNode)) {
+                    continue;
+                } else if (frontier.contains(checkingNode)) {
                     if (tempF < checkingNode.f) {
                         checkingNode.h = tempH;
                         checkingNode.g = tempG;
                         checkingNode.f = tempF;
-
                     }
                 } else if (!stack.contains(checkingNode)) {
-                    checkingNode.h = getDistance(goalNode, checkingNode);
-                    checkingNode.g = n.g + getDistance(n, checkingNode);
-                    checkingNode.f = checkingNode.h + checkingNode.g;
+                    checkingNode.h = tempH;
+                    checkingNode.g = tempG;
+                    checkingNode.f = tempF;
                     frontier.add(checkingNode);
                 }
             }
@@ -163,27 +173,24 @@ public class Stars2 extends JPanel {
              * System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
              * }
              */
-            if (n.nodesWithinDistance.isEmpty()) {
-                // frontier.add(stack.pop());
-                System.out.println("Route failed");
-            }
-            // System.out.println(n.f);
-            if (!stack.empty()) {
-                if (!stack.contains(n)) {
-                    Node stackNode = stack.peek();
-                    if (stackNode.f < n.g) {
-                        stack.pop();
-                        stack.add(n);
-                    } else {
-                        // stack.add(n);
-                    }
-
+            System.out.println(frontier.size());
+            if (frontier.size() == 0) {
+                frontier.add(stack.pop());
+                avoidNodes.add(n);
+            } else if (!stack.empty()) {
+                Node stackNode = stack.peek();
+                if (stackNode.h > n.f) {
+                    stack.pop();
+                    stack.add(n);
+                } else {
+                    stack.add(n);
                 }
+
             } else {
                 stack.add(n);
             }
 
-            System.out.println("-------");
+            // System.out.println("-------");
         }
 
         int nodeSize = 10;
