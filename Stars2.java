@@ -140,15 +140,16 @@ public class Stars2 extends JPanel {
                 routeFound = true;
             }
             for (Node checkingNode : n.nodesWithinDistance) {
-                tempH = getDistance(goalNode, checkingNode);
-                tempG = n.g + getDistance(n, checkingNode);
-                tempF = tempH + tempG;
+                tempH = getDistance(goalNode, checkingNode); // distance to goal
+                tempG = n.g + getDistance(n, checkingNode); // cost to node
+                tempF = tempH + tempG; // distance + cost
                 if (frontier.contains(checkingNode)) {
-                    System.out.println("contains node");
+                    // System.out.println("contains node");
                     if (tempF < checkingNode.f) {
                         checkingNode.h = tempH;
                         checkingNode.g = tempG;
                         checkingNode.f = tempF;
+
                     }
                 } else if (!stack.contains(checkingNode)) {
                     checkingNode.h = getDistance(goalNode, checkingNode);
@@ -163,11 +164,25 @@ public class Stars2 extends JPanel {
              * }
              */
             if (n.nodesWithinDistance.isEmpty()) {
-                frontier.add(stack.pop());
+                // frontier.add(stack.pop());
+                System.out.println("Route failed");
             }
-            if (!stack.contains(n)) {
+            // System.out.println(n.f);
+            if (!stack.empty()) {
+                if (!stack.contains(n)) {
+                    Node stackNode = stack.peek();
+                    if (stackNode.f < n.g) {
+                        stack.pop();
+                        stack.add(n);
+                    } else {
+                        // stack.add(n);
+                    }
+
+                }
+            } else {
                 stack.add(n);
             }
+
             System.out.println("-------");
         }
 
