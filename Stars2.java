@@ -21,7 +21,6 @@ public class Stars2 extends JPanel {
     static int startIndex;
     static int endIndex;
     static double distance;
-    static String fileName = "";
 
     // take coordinates from list and turn them into nodes
     static class Node {
@@ -36,6 +35,15 @@ public class Stars2 extends JPanel {
             x = coordX;
             y = coordY;
         }
+
+        Comparator<Node> nodeToNode = new Comparator<>() {
+            @Override
+            public int compare(Node node1, Node node2) {
+                return (int) node1.h - (int) node2.h;
+            }
+        };
+
+        PriorityQueue<Node> nodeQueue = new PriorityQueue<>(nodeToNode);
     }
 
     static class Edge {
@@ -52,14 +60,10 @@ public class Stars2 extends JPanel {
 
     public static void main(String[] args) {
         // read from entered arguments
-        try {
-            fileName = args[0];
-            startIndex = Integer.parseInt(args[1]);
-            endIndex = Integer.parseInt(args[2]);
-            distance = Double.parseDouble(args[3]);
-        } catch (Exception ex) {
-            System.out.println("Incorrect input detected.");
-        }
+        String fileName = args[0];
+        startIndex = Integer.parseInt(args[1]);
+        endIndex = Integer.parseInt(args[2]);
+        distance = Double.parseDouble(args[3]);
 
         // read star coordinates from file
         List<String> coordinates = new ArrayList<>();
@@ -114,9 +118,9 @@ public class Stars2 extends JPanel {
         Comparator<Node> nodeComparator = new Comparator<Node>() {
             @Override
             public int compare(Node node1, Node node2) {
-                if (node1.f < node2.f) {
+                if (node1.h < node2.h) {
                     return -1;
-                } else if (node1.f > node2.f) {
+                } else if (node1.h > node2.h) {
                     return 1;
                 }
                 return 0;
@@ -130,9 +134,12 @@ public class Stars2 extends JPanel {
         startNode.h = getDistance(goalNode, startNode);
         startNode.f = startNode.h + startNode.g;
         frontier.add(startNode);
+
         boolean routeFound = false;
         ArrayList<Node> avoidNodes = new ArrayList<Node>();
+        ArrayList<Node> beenNodes = new ArrayList<Node>();
         double tempH, tempG, tempF;
+        Node lastN = null;
 
         while (!frontier.isEmpty() && !routeFound) {
             Node n = frontier.poll();
@@ -140,44 +147,69 @@ public class Stars2 extends JPanel {
             if (nodesList.indexOf(n) == endIndex) {
                 System.out.println("Route found");
                 stack.add(n);
-                // for(Node testNode: stack) {
-                // System.out.println(testNode.x + " : " + testNode.y);
-                // }
                 routeFound = true;
             }
             for (Node checkingNode : n.nodesWithinDistance) {
                 tempH = getDistance(goalNode, checkingNode);
                 tempG = n.g + getDistance(n, checkingNode);
                 tempF = tempH + tempG;
+                Node bestNode = null;
+                double bestDistance = -1;
 
-                // for(Node testNode: frontier) {
-                // System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
-                // }
                 if (avoidNodes.contains(checkingNode)) {
                     continue;
                 } else if (frontier.contains(checkingNode)) {
-                    if (tempF < checkingNode.f) {
-                        checkingNode.h = tempH;
-                        checkingNode.g = tempG;
-                        checkingNode.f = tempF;
-                    }
+                    checkingNode.h = tempH;
+                    checkingNode.g = tempG;
+                    checkingNode.f = tempF;
                 } else if (!stack.contains(checkingNode)) {
                     checkingNode.h = tempH;
                     checkingNode.g = tempG;
                     checkingNode.f = tempF;
                     frontier.add(checkingNode);
                 }
+
+                if (lastN != null && stack.contains(checkingNode) && !beenNodes.contains(checkingNode)) {
+                    if (checkingNode.g + getDistance(checkingNode, n) < lastN.g + getDistance(lastN, n)) {
+                        while (stack.pop() != checkingNode) {
+                            continue;
+                        }
+                        beenNodes.add(checkingNode);
+                        stack.push(checkingNode);
+                    }
+                }
+
+                /*
+                 * Node bestNode = null;
+                 * double bestDistance = -1;
+                 * for(Node neigh: checkingNode.nodesWithinDistance) {
+                 * if(stack.contains(neigh)) {
+                 * if(neigh.g + getDistance(neigh, checkingNode) < tempG) {
+                 * bestNode = neigh;
+                 * }
+                 * System.out.println("Better Route");
+                 * }
+                 * }
+                 * if(bestNode != null) {
+                 * while(stack.peek() != bestNode) {
+                 * stack.pop();
+                 * }
+                 * }
+                 */
             }
+
             /*
              * for(Node testNode: frontier) {
              * System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
              * }
              */
-            System.out.println(frontier.size());
+            // System.out.println(stack.size());
             if (frontier.size() == 0) {
                 frontier.add(stack.pop());
                 avoidNodes.add(n);
-            } else if (!stack.empty()) {
+            } else if (stack.isEmpty()) {
+                stack.add(n);
+            } else if (!stack.contains(n)) {
                 Node stackNode = stack.peek();
                 if (stackNode.h > n.f) {
                     stack.pop();
@@ -185,11 +217,9 @@ public class Stars2 extends JPanel {
                 } else {
                     stack.add(n);
                 }
-
-            } else {
-                stack.add(n);
             }
 
+            lastN = n;
             // System.out.println("-------");
         }
 
