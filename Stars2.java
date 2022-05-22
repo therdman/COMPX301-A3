@@ -30,6 +30,7 @@ public class Stars2 extends JPanel {
         double h = 0; // distance to goal
         double g = 0; // cost from start to node
         double f = 0; // main cost
+        Node prev;
 
         public Node(double coordX, double coordY) {
             x = coordX;
@@ -92,7 +93,7 @@ public class Stars2 extends JPanel {
             NodesWithinDistance(n, nodesList);
         }
 
-        System.out.println(startNode.nodesWithinDistance.size());
+        //System.out.println(startNode.nodesWithinDistance.size());
         // get start node using node contents
 
         // ********************** A* IMPLEMENTATION
@@ -132,80 +133,50 @@ public class Stars2 extends JPanel {
         Node lastN = null;
 
         while (!frontier.isEmpty() && !routeFound) {
-            Node n = frontier.poll();
-            frontier.clear();
-            if (nodesList.indexOf(n) == endIndex) {
+            Node current = frontier.poll();
+            if(lastN == current) {
+                current = frontier.poll();
+            }
+            lastN = current;
+            //frontier.clear();
+            if (nodesList.indexOf(current) == endIndex) {
                 System.out.println("Route found");
-                stack.add(n);
+                //stack.add(n);
                 routeFound = true;
             }
-            for (Node checkingNode : n.nodesWithinDistance) {
-                tempH = getDistance(goalNode, checkingNode);
-                tempG = n.g + getDistance(n, checkingNode);
+            for (Node neighbour : current.nodesWithinDistance) {
+                tempH = getDistance(goalNode, neighbour);
+                tempG = current.g + getDistance(current, neighbour);
                 tempF = tempH + tempG;
-                Node bestNode = null;
-                double bestDistance = -1;
                 
-                if(avoidNodes.contains(checkingNode)) {
-                    continue;
-                }
-                else if (frontier.contains(checkingNode)) {
-                    checkingNode.h = tempH;
-                    checkingNode.g = tempG;
-                    checkingNode.f = tempF;
-                } else if (!stack.contains(checkingNode)) {
-                    checkingNode.h = tempH;
-                    checkingNode.g = tempG;
-                    checkingNode.f = tempF;
-                    frontier.add(checkingNode);
-                }
-                
-                if(lastN != null && stack.contains(checkingNode) && !beenNodes.contains(checkingNode)) {
-                    if(checkingNode.g + getDistance(checkingNode, n) < lastN.g + getDistance(lastN, n)) {
-                        while(stack.pop() != checkingNode) {
-                            continue;
-                        }
-                        beenNodes.add(checkingNode);
-                        stack.push(checkingNode);
+                if(tempG < neighbour.g || neighbour.g == 0d) {
+                    neighbour.prev = current;
+                    neighbour.g = tempG;
+                    neighbour.h = tempH;
+                    neighbour.f = tempF;
+                    if(!frontier.contains(neighbour)) {
+                        frontier.add(neighbour);
                     }
                 }
 
-                /*
-                Node bestNode = null;
-                double bestDistance = -1;
-                for(Node neigh: checkingNode.nodesWithinDistance) {
-                    if(stack.contains(neigh)) {
-                        if(neigh.g + getDistance(neigh, checkingNode) < tempG) {
-                            bestNode = neigh;
-                        }
-                        System.out.println("Better Route");
-                    }
-                }
-                if(bestNode != null) {
-                    while(stack.peek() != bestNode) {
-                        stack.pop();
-                    }
-                }*/
+                //System.out.println(frontier.size());
             }
 
+            //System.out.println("-----------");
 
-            
-            /*
-             * for(Node testNode: frontier) {
-             * System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
-             * }
-             */
-            //System.out.println(stack.size());
-            if (frontier.size() == 0) {
-                frontier.add(stack.pop());
-                avoidNodes.add(n);
-            }
-            else if (!stack.contains(n)) {
-                stack.add(n);
-            }
-            lastN = n;
+
             //System.out.println("-------");
         }
+        //System.out.println(stack.size());
+        Node current = nodesList.get(endIndex);
+        while(current != null && current != nodesList.get(startIndex)) {
+            System.out.println(current);
+            stack.add(current);
+            current = current.prev;
+
+        }
+        stack.add(current);
+
 
         int nodeSize = 10;
         JFrame frame = new JFrame();
