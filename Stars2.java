@@ -127,7 +127,9 @@ public class Stars2 extends JPanel {
         frontier.add(startNode);
         boolean routeFound = false;
         ArrayList<Node> avoidNodes = new ArrayList<Node>();
+        ArrayList<Node> beenNodes = new ArrayList<Node>();
         double tempH, tempG, tempF;
+        Node lastN = null;
 
         while (!frontier.isEmpty() && !routeFound) {
             Node n = frontier.poll();
@@ -135,41 +137,65 @@ public class Stars2 extends JPanel {
             if (nodesList.indexOf(n) == endIndex) {
                 System.out.println("Route found");
                 stack.add(n);
-                // for(Node testNode: stack) {
-                // System.out.println(testNode.x + " : " + testNode.y);
-                // }
                 routeFound = true;
             }
             for (Node checkingNode : n.nodesWithinDistance) {
                 tempH = getDistance(goalNode, checkingNode);
                 tempG = n.g + getDistance(n, checkingNode);
                 tempF = tempH + tempG;
+                Node bestNode = null;
+                double bestDistance = -1;
                 
-                //for(Node testNode: frontier) {
-                //System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
-                //}
                 if(avoidNodes.contains(checkingNode)) {
                     continue;
                 }
                 else if (frontier.contains(checkingNode)) {
-                    if (tempF < checkingNode.f) {
-                        checkingNode.h = tempH;
-                        checkingNode.g = tempG;
-                        checkingNode.f = tempF;
-                    }
+                    checkingNode.h = tempH;
+                    checkingNode.g = tempG;
+                    checkingNode.f = tempF;
                 } else if (!stack.contains(checkingNode)) {
                     checkingNode.h = tempH;
                     checkingNode.g = tempG;
                     checkingNode.f = tempF;
                     frontier.add(checkingNode);
                 }
+                
+                if(lastN != null && stack.contains(checkingNode) && !beenNodes.contains(checkingNode)) {
+                    if(checkingNode.g + getDistance(checkingNode, n) < lastN.g + getDistance(lastN, n)) {
+                        while(stack.pop() != checkingNode) {
+                            continue;
+                        }
+                        beenNodes.add(checkingNode);
+                        stack.push(checkingNode);
+                    }
+                }
+
+                /*
+                Node bestNode = null;
+                double bestDistance = -1;
+                for(Node neigh: checkingNode.nodesWithinDistance) {
+                    if(stack.contains(neigh)) {
+                        if(neigh.g + getDistance(neigh, checkingNode) < tempG) {
+                            bestNode = neigh;
+                        }
+                        System.out.println("Better Route");
+                    }
+                }
+                if(bestNode != null) {
+                    while(stack.peek() != bestNode) {
+                        stack.pop();
+                    }
+                }*/
             }
+
+
+            
             /*
              * for(Node testNode: frontier) {
              * System.out.println(testNode.x + " : " + testNode.y + " : " + testNode.f);
              * }
              */
-            System.out.println(frontier.size());
+            //System.out.println(stack.size());
             if (frontier.size() == 0) {
                 frontier.add(stack.pop());
                 avoidNodes.add(n);
@@ -177,6 +203,7 @@ public class Stars2 extends JPanel {
             else if (!stack.contains(n)) {
                 stack.add(n);
             }
+            lastN = n;
             //System.out.println("-------");
         }
 
