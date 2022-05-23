@@ -1,3 +1,6 @@
+// Bradley Aries - 1265367
+// Taylor Herdman
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.List;
@@ -7,11 +10,7 @@ import java.util.Stack;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import org.w3c.dom.NodeList;
-
 import java.awt.*;
-import javax.swing.*;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,6 +20,7 @@ public class Stars2 extends JPanel {
     static int startIndex;
     static int endIndex;
     static double distance;
+    static String fileName;
 
     // take coordinates from list and turn them into nodes
     static class Node {
@@ -38,31 +38,22 @@ public class Stars2 extends JPanel {
         }
     }
 
-    static class Edge {
-        Node _beginning;
-        Node _end;
-        double _distanceToNode;
-
-        public Edge(Node beginning, Node end, double distanceToNode) {
-            _beginning = beginning;
-            _end = end;
-            _distanceToNode = distanceToNode;
-        }
-    }
-
     public static void main(String[] args) {
         // read from entered arguments
-        String fileName = args[0];
-        startIndex = Integer.parseInt(args[1]);
-        endIndex = Integer.parseInt(args[2]);
-        distance = Double.parseDouble(args[3]);
-
+        try {
+            fileName = args[0];
+            startIndex = Integer.parseInt(args[1]);
+            endIndex = Integer.parseInt(args[2]);
+            distance = Double.parseDouble(args[3]);
+        } catch (Exception ex) {
+            System.out.println("Please enter: Stars <filename.csv> <start node> <goal node> <distance>");
+            System.exit(0);
+        }
         // read star coordinates from file
         List<String> coordinates = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
             while ((line = br.readLine()) != null) {
-                // System.out.println(line);
                 coordinates.add(line);
             }
             br.close();
@@ -93,19 +84,9 @@ public class Stars2 extends JPanel {
             NodesWithinDistance(n, nodesList);
         }
 
-        // System.out.println(startNode.nodesWithinDistance.size());
-        // get start node using node contents
-
-        // ********************** A* IMPLEMENTATION
-        // Step one: Add edges/paths to priority queue
+        // ********************** A* IMPLEMENTATION //////////////////////////
 
         // create priority queue comparing distances
-        Comparator<Edge> EdgeComparator = new Comparator<>() {
-            @Override
-            public int compare(Edge edge1, Edge edge2) {
-                return (int) edge1._distanceToNode - (int) edge2._distanceToNode;
-            }
-        };
 
         Comparator<Node> nodeComparator = new Comparator<Node>() {
             @Override
@@ -119,7 +100,6 @@ public class Stars2 extends JPanel {
             }
         };
 
-        PriorityQueue<Edge> queue = new PriorityQueue<>(EdgeComparator);
         PriorityQueue<Node> frontier = new PriorityQueue<>(nodeComparator);
         Stack<Node> stack = new Stack<>();
 
@@ -127,57 +107,49 @@ public class Stars2 extends JPanel {
         startNode.f = startNode.h + startNode.g;
         frontier.add(startNode);
         boolean routeFound = false;
-        ArrayList<Node> avoidNodes = new ArrayList<Node>();
-        ArrayList<Node> beenNodes = new ArrayList<Node>();
         double tempH, tempG, tempF;
         Node lastN = null;
 
-        while (!frontier.isEmpty() && !routeFound) {
-            Node current = frontier.poll();
-            if (lastN == current) {
-                current = frontier.poll();
-            }
-            lastN = current;
-            // frontier.clear();
-            if (nodesList.indexOf(current) == endIndex) {
-                System.out.println("Route found");
-                // stack.add(n);
-                routeFound = true;
-            }
-            for (Node neighbour : current.nodesWithinDistance) {
-                tempH = getDistance(goalNode, neighbour);
-                tempG = current.g + getDistance(current, neighbour);
-                tempF = tempH + tempG;
+        try {
+            while (!frontier.isEmpty() && !routeFound) {
+                Node current = frontier.poll();
+                if (lastN == current) {
+                    current = frontier.poll();
+                }
+                lastN = current;
+                if (nodesList.indexOf(current) == endIndex) {
+                    System.out.println("Route found");
+                    routeFound = true;
+                }
+                for (Node neighbour : current.nodesWithinDistance) {
+                    tempH = getDistance(goalNode, neighbour);
+                    tempG = current.g + getDistance(current, neighbour);
+                    tempF = tempH + tempG;
 
-                if (tempG < neighbour.g || neighbour.g == 0d) {
-                    neighbour.prev = current;
-                    neighbour.g = tempG;
-                    neighbour.h = tempH;
-                    neighbour.f = tempF;
-                    if (!frontier.contains(neighbour)) {
-                        frontier.add(neighbour);
+                    if (tempG < neighbour.g || neighbour.g == 0d) {
+                        neighbour.prev = current;
+                        neighbour.g = tempG;
+                        neighbour.h = tempH;
+                        neighbour.f = tempF;
+                        if (!frontier.contains(neighbour)) {
+                            frontier.add(neighbour);
+                        }
                     }
                 }
-
-                // System.out.println(frontier.size());
             }
-
-            // System.out.println("-----------");
-
-            // System.out.println("-------");
+        } catch (Exception ex) {
+            System.out.println("No possible route found");
+            System.exit(0);
         }
-        // System.out.println(stack.size());
         Node current = nodesList.get(endIndex);
         while (current != null && current != nodesList.get(startIndex)) {
-            // System.out.println(current);
-
             stack.add(current);
-
             current = current.prev;
-
         }
         stack.add(current);
 
+        // overriding paintComponent methods
+        // draw nodes on graph
         int nodeSize = 10;
         JFrame frame = new JFrame();
         JPanel panel = new JPanel() {
@@ -196,7 +168,12 @@ public class Stars2 extends JPanel {
                     g2.fillOval(x, y, nodeSize, nodeSize);
 
                 }
-
+                // draw lines between each node in route
+                System.out.println(stack.size());
+                if (stack.size() <= 2) {
+                    System.out.println("No possible route found");
+                    return;
+                }
                 Node prev = startNode;
                 for (Node n : stack) {
                     System.out.println(n.x + " : " + n.y);
@@ -209,51 +186,16 @@ public class Stars2 extends JPanel {
 
                     }
                     prev = n;
-
                 }
-
             }
         };
+
         // Displaying chart
         frame.add(panel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 800);
         frame.setTitle("Space Explorer");
         frame.setVisible(true);
-
-        /*
-         * // get distance to goal from start
-         * startNode.distanceToGoal = getDistance(goalNode, startNode);
-         * // add each neighbour depending on distance
-         * for (Node n : startNode.nodesWithinDistance) {
-         * double dist = getDistance(n, startNode);
-         * // create new edge between these two nodes
-         * Edge edge = new Edge(startNode, n, dist);
-         * // Add edge to queue
-         * queue.add(edge);
-         * }
-         * Node currentNode = startNode;
-         * // Step 2: Now that we have the first set of edges
-         * // peek at node at end of first edge
-         * while (currentNode != goalNode) {
-         * Edge edge = queue.peek();
-         * // add the node's distance to goal to edge distance
-         * Node node = edge._end;
-         * node.distanceToGoal = getDistance(node, goalNode);
-         * double totalDist = edge._distanceToNode + node.distanceToGoal;
-         * // if total distance is smaller than start distance to goal
-         * // move to this node
-         * if (totalDist <= startNode.distanceToGoal) {
-         * currentNode = node;
-         * }
-         * // if total distance is larger
-         * // peek at next edge in queue... maybe
-         * else {
-         * 
-         * }
-         * }
-         */
-
     }
 
     public static double getDistance(Node node1, Node node2) {
