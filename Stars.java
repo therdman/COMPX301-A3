@@ -37,7 +37,7 @@ public class Stars extends JPanel {
     }
 
     public static void main(String[] args) {
-        // read from entered arguments
+        // read from given arguments
         try {
             fileName = args[0];
             startIndex = Integer.parseInt(args[1]);
@@ -151,10 +151,10 @@ public class Stars extends JPanel {
             System.out.println("No Route Found");
         }
 
-        // overriding paintComponent methods
         int nodeSize = 10;
         JFrame frame = new JFrame();
         JPanel panel = new JPanel() {
+            // overriding paintComponent methods to display the graph
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g;
