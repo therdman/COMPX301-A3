@@ -20,6 +20,10 @@ public class Stars extends JPanel {
     static double distance;
     static String fileName;
     static boolean routeFound;
+    // maxX and maxY are used to do some minor rescaling on graph
+    static double maxX;
+    static double maxY;
+
 
     // Node class to hold required parameters
     static class Node {
@@ -67,12 +71,16 @@ public class Stars extends JPanel {
             System.exit(0);
         }
 
+        maxX = 0 ;
+        maxY = 0;
         // create list of nodes from the list of coordinates
         List<Node> nodesList = new ArrayList<>();
         for (String line : coordinates) {
             String[] xy = line.split(",");
             double x = Double.parseDouble(xy[0]);
             double y = Double.parseDouble(xy[1]);
+            maxX = (x > maxX) ? x : maxX;
+            maxY = (y > maxY) ? y : maxY;
             Node node = new Node(x, y);
             nodesList.add(node);
         }
@@ -152,6 +160,7 @@ public class Stars extends JPanel {
         }
 
         int nodeSize = 10;
+        int pad = 5; // to graph down and right
         JFrame frame = new JFrame();
         JPanel panel = new JPanel() {
             // overriding paintComponent methods to display the graph
@@ -161,25 +170,25 @@ public class Stars extends JPanel {
                 // draw each Node on graph
                 // starting node is green, goal node is red
                 for (Node n : nodesList) {
-                    int x = (int) Math.round(n.x * 8);
-                    int y = (int) Math.round(n.y * 8);
+                    int x = (int) Math.round(n.x/maxX * 800) + pad;
+                    int y = (int) Math.round(n.y/maxY * 800) + pad;
                     g2.setColor(Color.BLUE);
                     if (n == startNode)
                         g2.setColor(Color.GREEN);
                     else if (n == goalNode)
                         g2.setColor(Color.RED);
                     g2.fillOval(x, y, nodeSize, nodeSize);
-
                 }
+
                 // draw lines between each node in route if a route was found
                 if(routeFound) {
                     Node prev = startNode;
                     for (Node n : stack) {
                         if (prev != startNode) {
-                            int x1 = (int) Math.round(n.x * 8) + (nodeSize / 2);
-                            int y1 = (int) Math.round(n.y * 8) + (nodeSize / 2);
-                            int x2 = (int) Math.round(prev.x * 8) + (nodeSize / 2);
-                            int y2 = (int) Math.round(prev.y * 8) + (nodeSize / 2);
+                            int x1 = (int) Math.round(n.x/maxX * 800) + (nodeSize / 2) + pad;
+                            int y1 = (int) Math.round(n.y/maxY * 800) + (nodeSize / 2) + pad;
+                            int x2 = (int) Math.round(prev.x/maxX * 800) + (nodeSize / 2) + pad;
+                            int y2 = (int) Math.round(prev.y/maxY * 800) + (nodeSize / 2) + pad;
                             g2.drawLine(x1, y1, x2, y2);
                         }
                         prev = n;
@@ -191,7 +200,7 @@ public class Stars extends JPanel {
         // set up and display chart
         frame.add(panel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1000, 1000);
+        frame.setSize(840, 860);
         frame.setTitle("Space Explorer");
         frame.setVisible(true);
     }
