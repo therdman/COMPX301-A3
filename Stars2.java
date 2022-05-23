@@ -1,5 +1,5 @@
 // Bradley Aries - 1265367
-// Taylor Herdman
+// Taylor Herdman - 1539676
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -169,14 +169,12 @@ public class Stars2 extends JPanel {
 
                 }
                 // draw lines between each node in route
-                System.out.println(stack.size());
                 if (stack.size() <= 2) {
                     System.out.println("No possible route found");
                     return;
                 }
                 Node prev = startNode;
                 for (Node n : stack) {
-                    System.out.println(n.x + " : " + n.y);
                     if (prev != startNode) {
                         int x1 = (int) Math.round(n.x * 8) + (nodeSize / 2);
                         int y1 = (int) Math.round(n.y * 8) + (nodeSize / 2);
